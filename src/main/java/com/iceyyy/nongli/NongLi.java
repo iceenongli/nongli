@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 /**
- * 公历转农历工具类
+ * 公历转农历工具类(1700-3100)
  * 
  * @author iceWater
  * @date 2017-04-12
