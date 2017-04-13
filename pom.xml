@@ -32,25 +32,7 @@
     </dependency>
   </dependencies>
 
-    <issueManagement>
-        <system>Github Issue</system>
-        <url>https://github.com/iceenongli/nongli.git</url>
-    </issueManagement>
-  <scm>
-      <connection>scm:git:https://github.com/iceenongli/nongli.git</connection>
-      <developerConnection>scm:git:https://github.com/iceenongli/nongli.git</developerConnection>
-      <url>https://github.com/iceenongli/nongli.git</url>
-  </scm>
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
 
-    <profiles>
-        <profile>
-            <id>release</id>
-            <activation>
-			    <activeByDefault>true</activeByDefault>
-		    </activation>
             <distributionManagement>
                 <snapshotRepository>
                     <id>oss</id>
@@ -61,6 +43,18 @@
                     <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
                 </repository>
             </distributionManagement>
+	<issueManagement>
+		<system>Github Issue</system>
+		<url>https://github.com/iceenongli/nongli.git</url>
+	</issueManagement>
+  <scm>
+      <connection>scm:git:https://github.com/iceenongli/nongli.git</connection>
+      <developerConnection>scm:git:https://github.com/iceenongli/nongli.git</developerConnection>
+      <url>https://github.com/iceenongli/nongli.git</url>
+  </scm>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -74,6 +68,32 @@
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.4</version>
+				<configuration>
+					<aggregate>true</aggregate>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<profiles>
+		<profile>
+			<id>release</id>
+			<distributionManagement>
+				<snapshotRepository>
+					<id>oss</id>
+					<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+				</snapshotRepository>
+				<repository>
+					<id>oss</id>
+					<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+				</repository>
+			</distributionManagement>
+			<build>
+				<plugins>
+					<!-- Source -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
                         <version>3.0.1</version>
                         <executions>
