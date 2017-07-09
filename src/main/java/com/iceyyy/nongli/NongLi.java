@@ -11,13 +11,21 @@ import java.util.ArrayList;
  * 
  * @author iceWater
  * @date 2017-04-12
- * @version 1.0
+ * @version 2.0
  */
 public class NongLi {
+    /**
+     * 将月份第十三位规定为闰月大小
+     */
     private static int FIRST_YEAR = -1;
     private static int LAST_YEAR = -1;
     private static final String[] dataTopInit = init();
 
+    /**
+     * 该月份之前的天数
+     * @param month
+     * @return
+     */
     private static int addDays(int month) {
         switch (month) {
         case 1:
@@ -49,12 +57,24 @@ public class NongLi {
         }
     }
 
+    /**
+     * 判断是否为闰年
+     * @param year
+     * @return
+     */
     private static boolean isLeapYear(int year) {
         if (year % 172800 == 0 || year % 400 == 0 && year % 3200 != 0 || year % 4 == 0 && year % 100 != 0)
             return true;
         return false;
     }
 
+    /**
+     * 一年中的第几天 1.1是第一天
+     * @param year
+     * @param month
+     * @param day
+     * @return
+     */
     private static int getDays(int year, int month, int day) {
         int sum = addDays(month) + day;
         if (isLeapYear(year) && month > 2) {
@@ -63,6 +83,11 @@ public class NongLi {
         return sum;
     }
 
+    /**
+     * 字符串获取一年中的第几天
+     * @param date
+     * @return
+     */
     private static int getDays(String date) {
         int year = Integer.parseInt(date.substring(0, 4));
         int month = Integer.parseInt(date.substring(4, 6));
@@ -70,6 +95,11 @@ public class NongLi {
         return getDays(year, month, day);
     }
 
+    /**
+     * 将数字转化为汉字的数字,适应任何长度
+     * @param year
+     * @return
+     */
     private static String formatYear(int year) {
         String table = "零一二三四五六七八九";
         StringBuilder result = new StringBuilder("");
@@ -82,6 +112,12 @@ public class NongLi {
         return result.reverse().toString();
     }
 
+    /**
+     * 月份转化为汉字,不含"月"字.
+     * 1为正月,2为二月,13为闰正月,24为闰腊月
+     * @param month
+     * @return
+     */
     private static String formatMonth(int month) {
         String table = "正二三四五六七八九十冬腊";
         if (month > 12) {
@@ -90,6 +126,12 @@ public class NongLi {
         return table.substring(month - 1, month);
     }
 
+    /**
+     * 天数转为农历汉字天数
+     * 1为初一 30为三十
+     * @param day
+     * @return
+     */
     private static String formatDay(int day) {
         String table = "十一二三四五六七八九";
         int day1 = day / 10;
@@ -108,7 +150,7 @@ public class NongLi {
             } else if (day1 == 2) {
                 return "廿" + result;
             } else {
-                throw new RuntimeException("错误");
+                throw new RuntimeException("不存在的农历日期");
             }
         }
     }
@@ -128,33 +170,42 @@ public class NongLi {
         return dataTemp;
     }
 
+    /**
+     * 17000219_  1010010010110_00
+     * 17000219_101010010010110_00
+     * 在年后面的下划线处插入mid
+     * @param thisYear
+     * @param lastYear
+     * @return
+     */
     private static String addLastMonth(String thisYear, String lastYear) {
-        String last = lastYear.substring(19);
-        String mid = cast2(last);
+        String last = lastYear.substring(19);//last=110_07
+        String mid = getNovemberAndDecember(last);//mid=10
         StringBuilder sb = new StringBuilder(thisYear);
         String result = sb.insert(9, mid).toString();
         return result;
     }
 
     private static int[] cast(String start, String now, int[] bigOrLitter, int leap) {
-        int numStart = getDays(start);
-        int numNow = getDays(now);
-        int dif = numNow - numStart;
-        int sum = 0 - bigOrLitter[0] - bigOrLitter[1] - 29 - 29;
-        int i = 0;
+        int numStart = getDays(start);//新年的累计天数
+        int numNow = getDays(now);//当前日期的累计天数
+        int dif = numNow - numStart;//当前日期相对天数,相对新年 新年为0天
+        int[]bigOrLitterSort=resetSort(bigOrLitter,leap);
+        int sum = 0 - bigOrLitterSort[0] - bigOrLitterSort[1] - 29 - 29;//去年11月1日的相对天数,为负数
+        int i = 0;//月份
         while (dif >= sum) {
-            sum += (bigOrLitter[i++] + 29);
+            sum += (bigOrLitterSort[i++] + 29);// 加上每月的农历天数
         }
-        int year = Integer.parseInt(now.substring(0, 4));
-        int[] result = new int[3];
-        result[0] = dif < 0 ? year - 1 : year;
-        result[1] = i - 2 <= 0 ? i + 10 : i - 2;
-        if (dif >= 0) {
+        int year = Integer.parseInt(now.substring(0, 4));//获取年份
+        int[] result = new int[3];// 数组分别存储年月日.
+        result[0] = dif < 0 ? year - 1 : year;//在过年前 取去年,在过年后 年份取今年.
+        result[1] = i - 2 <= 0 ? i + 10 : i - 2;//月份  去年的11月是第一个月
+        if (dif >= 0) {//过年以后
             if (leap != 0) {
-                if (result[1] == leap + 1) {
-                    result[1] += 11;
-                } else if (result[1] > leap + 1) {
-                    result[1]--;
+                if (result[1] == leap + 1) {//当前月就是闰月
+                    result[1] += 11;//闰月加12,从0开始又减1
+                } else if (result[1] > leap + 1) {//当前位于闰月之后
+                    result[1]--;//减去闰掉的那个月
                 }
             }
         } else {
@@ -182,33 +233,97 @@ public class NongLi {
                 }
             }
         }
-        result[2] = dif - sum + bigOrLitter[i - 1] + 29 + 1;
+        result[2] = dif - sum + bigOrLitterSort[i - 1] + 29 + 1;//计算日期
         return result;
     }
 
+    private static int[] resetSort(int[] bigOrLitter, int leap) {
+        int len=bigOrLitter.length;//15
+        int[] bigOrLitterSort = new int[len];
+        if(leap == 0){//直接复制数组
+            for (int i = 0; i < len; i++) {
+                bigOrLitterSort[i] = bigOrLitter[i];
+            }
+        }else{//插入闰月大小
+            for (int i = 0; i < len; i++) {
+                int index = i - 2;
+                if (index > leap) {
+                    bigOrLitterSort[i] = bigOrLitter[i - 1];
+                } else if (index == leap) {
+                    bigOrLitterSort[i] = bigOrLitter[len - 1];// 14
+                } else {
+                    bigOrLitterSort[i] = bigOrLitter[i];
+                }
+            }
+        }
+        return bigOrLitterSort;
+    }
+
     private static int[] cast(String now, String data) {
-        String start = data.substring(0, 8);
-        String bigOrLitterStr = data.substring(9, 24);
-        String leapStr = data.substring(25, 27);
-        int[] bigOrLitter = new int[15];
+        String start = data.substring(0, 8);//春节年月日
+        String bigOrLitterStr = data.substring(9, 24);//15个月的大小月 包含去年的两个月与今年的闰月大小
+        String leapStr = data.substring(25, 27);//闰月闰的月份两位数
+        int[] bigOrLitter = new int[15];//将15个月的大小转为数组
         for (int i = 0; i < bigOrLitter.length; i++) {
             bigOrLitter[i] = Integer.parseInt(bigOrLitterStr.substring(i, i + 1));
         }
-        int leap = Integer.parseInt(leapStr);
+        int leap = Integer.parseInt(leapStr);//闰月数转为数字,闰的月份
         return cast(start, now, bigOrLitter, leap);
     }
 
-    private static String cast2(String last) {
-        if ("00".equals(last.substring(4)))
-            return last.substring(0, 2);
-        return last.substring(1, 3);
+    /**
+     * 取前两位(上一年的十一月和十二月)
+     * 确保每一行都包含前一年的信息。（前一年的11月和12月份）
+     * last="110_07"
+     * mid="10"
+     * @param last
+     * @return
+     */
+    private static String getNovemberAndDecember(String last) {
+        return last.substring(0, 2);
     }
 
     private static int[] cast(String now, String[] dataInit, int startYear) {
         String year = now.substring(0, 4);
         int numYear = Integer.parseInt(year);
         String data = dataInit[numYear - startYear];
+        String dataLast = dataInit[numYear - startYear - 1];
+        if (dataLast.endsWith("_11")) {
+            String newStr = subLeapNovember(dataLast);
+            data = replaceLastYearMonth(data, newStr);
+        } else if (dataLast.endsWith("_12")) {
+            String newStr = subLeapDecember(dataLast);
+            data = replaceLastYearMonth(data, newStr);
+        }
         return cast(now, data);
+    }
+
+    /**
+     * 替换去年12月与11月部分，共15位月份
+     * @param str
+     * @param newStr
+     * @return
+     */
+    private static String replaceLastYearMonth(String str, String newStr) {
+        return str.substring(0, 9) + newStr+str.substring(11);
+    }
+
+    /**
+     * 去年闰十一月
+     * @param str
+     * @return
+     */
+    private static String subLeapNovember(String str) {
+        return str.substring(23,24)+str.substring(22,23);
+    }
+
+    /**
+     * 去年闰十二月
+     * @param str
+     * @return
+     */
+    private static String subLeapDecember(String str) {
+        return str.substring(22,24);
     }
 
     private static int[] judge(String date) {
@@ -272,6 +387,11 @@ public class NongLi {
         }
     }
 
+    /**
+     * int数组转为字符串
+     * @param date
+     * @return
+     */
     private static String cast(int[] date) {
         int year = date[0];
         int month = date[1];
